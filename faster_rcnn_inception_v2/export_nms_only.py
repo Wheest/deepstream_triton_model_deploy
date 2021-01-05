@@ -40,32 +40,16 @@ DEFAULT_MAX_WORKSPACE_SIZE = 1 << 29
 DEFAULT_MIN_SEGMENT_SIZE = 10
 DEFAULT_GPU_MEMORY_FRACTION = 0.6
 
-TfConfig = tf.ConfigProto()
+TfConfig = tf1.ConfigProto()
 # TfConfig.gpu_options.allow_growth=True
 TfConfig.gpu_options.allow_growth = False
 TfConfig.gpu_options.per_process_gpu_memory_fraction = DEFAULT_GPU_MEMORY_FRACTION
-
-
-def loadGraphDef(modelFile):
-    graphDef = tf.GraphDef()
-    with open(modelFile, "rb") as f:
-        graphDef.ParseFromString(f.read())
-    return graphDef
 
 
 def saveGraphDef(graphDef, outputFilePath):
     with open(outputFilePath, "wb") as f:
         f.write(graphDef.SerializeToString())
         print("---------saved graphdef to {}".format(outputFilePath))
-
-
-def updateNmsCpu(graphDef):
-    for node in graphDef.node:
-        # if 'NonMaxSuppressionV' in node.name and not node.device:
-        if "NonMaxSuppression" in node.name and "TRTEngineOp" not in node.name:
-            # node.device = '/device:CPU:0'
-            node.device = "/job:localhost/replica:0/task:0/device:CPU:0"
-
 
 def main():
 
@@ -123,24 +107,27 @@ def main():
         DEFAULT_SCORES_NAME,
         DEFAULT_NUM_DETECTIONS_NAME,
     ]
-    nnGraphDef = loadGraphDef(args.modelPath)
-    converter = trt.TrtGraphConverter(
+
+    params = tf.experimental.tensorrt.ConversionParams(
         is_dynamic_op=True,
-        input_graph_def=nnGraphDef,
-        nodes_blacklist=outputNames,
         max_batch_size=args.max_batch_size,
-        max_workspace_size_bytes=DEFAULT_MAX_WORKSPACE_SIZE,
         precision_mode=args.precision,
+        max_workspace_size_bytes=DEFAULT_MAX_WORKSPACE_SIZE,
         minimum_segment_size=args.min_segment_size,
     )
+
+    converter = tf.experimental.tensorrt.Converter(
+        input_saved_model_dir=args.modelPath,
+        conversion_params=params,
+    )
+
     trtGraphDef = converter.convert()
     print("-------tf-trt model has been rebuilt.")
     if args.nms == True:
         # Update NMS to CPU and save the model
         print("-------updateNMS to CPU.")
-        updateNmsCpu(trtGraphDef)
         saveGraphPath = "nms_" + saveGraphPath
-    saveGraphDef(trtGraphDef, saveGraphPath)
+    converter.save(output_saved_model_dir=saveGraphPath)
 
 
 if __name__ == "__main__":
