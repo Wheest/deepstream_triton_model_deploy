@@ -13,18 +13,26 @@ Follow the instructions mentioned in the quick start guide: (https://docs.nvidia
 ### Obtaining the model ###
 
 ```bash
-$wget http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
-$tar xvf faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
+$ wget http://download.tensorflow.org/models/object_detection/faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
+$ tar xvf faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
 ```
 
 ### Optimizing the model with TF-TRT ###
 
+We pull and run Docker images to optimize the model with TF-TRT.  Run these commands from `faster_rcnn_inception_v2/`, and the directory will be mounted inside the containers.
+
 ```
-$docker pull nvcr.io/nvidia/tensorflow:20.03-tf1-py3
-$docker pull nvcr.io/nvidia/l4t-tensorflow:r32.4.3-tf1.15-py3
-$docker run --gpus all -it --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864  -v /home/$USER/triton_blog/:/workspace/triton_blog nvcr.io/nvidia/tensorflow:20.03-tf1-py3
-$docker run --runtime=nvidia -it --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864  -v /home/$USER/triton_blog/:/workspace/triton_blog nvcr.io/nvidia/l4t-tensorflow:r32.4.3-tf1.15-py3
-$python3 export_nms_only.py --modelPath faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --gpu_mem_fraction 0.6 --nms True --precision FP16 --max_batch_size 8 --min_segment_size 5
+$ docker pull nvcr.io/nvidia/tensorflow:20.03-tf1-py3
+$ docker pull nvcr.io/nvidia/l4t-tensorflow:r32.4.4-tf2.3-py3
+$ docker run --gpus all -it --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864  -v $PWD:/workspace/triton_demo nvcr.io/nvidia/l4t-tensorflow:r32.4.4-tf2.3-py3
+```
+
+Inside the Docker container, run:
+
+```
+$ cd /workspace/triton_demo
+$ pip3 install Pillow
+$ python3 export_nms_only.py --modelPath faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --gpu_mem_fraction 0.6 --nms True --precision FP16 --max_batch_size 8 --min_segment_size 5
 ```
 
 ### Deepstream Configuration Files ###
@@ -33,16 +41,17 @@ There are two configuration file:
 1. Inference configuration file
 	* Sets the parameters for inference. This file takes the model configuration file sets the parameters for pre/post-processing
 2. Application configuration file
-	* Sets the configuration group to create a DeepStream pipeline. In this file you can set different configuration groups like source, sink, primary-gie, osd etc. Each group is calling a gstreamer-plugin. For more information on these plugins and configuration please check (https://docs.nvidia.com/metropolis/deepstream/plugin-manual/index.html#page/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.html) (https://docs.nvidia.com/metropolis/deepstream/dev-guide/index.html)
+	* Sets the configuration group to create a DeepStream pipeline. In this file you can set different configuration groups like source, sink, primary-gie, osd etc. Each group is calling a gstreamer-plugin. For more information on these plugins and configuration please check the [
+NVIDIA Metropolis Documentation](https://docs.nvidia.com/metropolis/deepstream/plugin-manual/index.html#page/DeepStream%20Plugins%20Development%20Guide/deepstream_plugin_details.html) and [DeepStream Development Guide](https://docs.nvidia.com/metropolis/deepstream/dev-guide/index.html)
 
-These files are located at faster_rcnn_inception_v2/config
+These files are located at `faster_rcnn_inception_v2/config`.
 
 ### Run the Application ###
 
 To run the application, make sure that the paths to the configuration files and input video stream are correct, then launch the reference app with the application configuration file
 
-`cd $DEEPSTREAM_DIR/samples/configs/deepstream-app-trtis`
-`deepstream-app -c source1_primary_faster_rcnn_inception_v2.txt`
+`$ cd $DEEPSTREAM_DIR/samples/configs/deepstream-app-trtis`
+`$ deepstream-app -c source1_primary_faster_rcnn_inception_v2.txt`
 
 ## Performance ##
 
