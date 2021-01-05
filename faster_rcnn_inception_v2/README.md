@@ -49,8 +49,7 @@ These files are located at `faster_rcnn_inception_v2/config`.
 
 To run the application from the container, make sure that the paths to the configuration files and input video stream are correct, then launch the reference app with the application configuration file
 
-`$ cd $DEEPSTREAM_DIR/samples/configs/deepstream-app-trtis`
-`$ deepstream-app -c source1_primary_faster_rcnn_inception_v2.txt`
+`$ deepstream-app -c config/source1_primary_faster_rcnn_inception_v2.txt`
 
 ## Performance ##
 
