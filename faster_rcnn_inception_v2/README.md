@@ -22,7 +22,6 @@ $ tar xvf faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
 We pull and run Docker images to optimize the model with TF-TRT.  Run these commands from `faster_rcnn_inception_v2/`, and the directory will be mounted inside the containers.
 
 ```
-$ docker pull nvcr.io/nvidia/tensorflow:20.03-tf1-py3
 $ docker pull nvcr.io/nvidia/l4t-tensorflow:r32.4.4-tf2.3-py3
 $ docker run --gpus all -it --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864  -v $PWD:/workspace/triton_demo nvcr.io/nvidia/l4t-tensorflow:r32.4.4-tf2.3-py3
 ```
@@ -32,7 +31,7 @@ Inside the Docker container, run:
 ```
 $ cd /workspace/triton_demo
 $ pip3 install Pillow
-$ python3 export_nms_only.py --modelPath faster_rcnn_inception_v2_coco_2018_01_28/frozen_inference_graph.pb --gpu_mem_fraction 0.6 --nms True --precision FP16 --max_batch_size 8 --min_segment_size 5
+$ python3 export_nms_only.py --modelPath faster_rcnn_inception_v2_coco_2018_01_28/saved_model/ --gpu_mem_fraction 0.6 --nms True --precision FP16 --max_batch_size 8 --min_segment_size 5
 ```
 
 ### Deepstream Configuration Files ###
@@ -48,7 +47,7 @@ These files are located at `faster_rcnn_inception_v2/config`.
 
 ### Run the Application ###
 
-To run the application, make sure that the paths to the configuration files and input video stream are correct, then launch the reference app with the application configuration file
+To run the application from the container, make sure that the paths to the configuration files and input video stream are correct, then launch the reference app with the application configuration file
 
 `$ cd $DEEPSTREAM_DIR/samples/configs/deepstream-app-trtis`
 `$ deepstream-app -c source1_primary_faster_rcnn_inception_v2.txt`
