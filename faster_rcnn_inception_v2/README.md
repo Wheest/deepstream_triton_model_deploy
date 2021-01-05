@@ -22,8 +22,8 @@ $ tar xvf faster_rcnn_inception_v2_coco_2018_01_28.tar.gz
 We pull and run Docker images to optimize the model with TF-TRT.  Run these commands from `faster_rcnn_inception_v2/`, and the directory will be mounted inside the containers.
 
 ```
-$ docker pull nvcr.io/nvidia/l4t-tensorflow:r32.4.4-tf2.3-py3
-$ docker run --gpus all -it --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864  -v $PWD:/workspace/triton_demo nvcr.io/nvidia/l4t-tensorflow:r32.4.4-tf2.3-py3
+$ docker pull nvcr.io/nvidia/deepstream-l4t:5.0.1-20.09-samples
+$ docker run --gpus all -it --rm --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864  -v $PWD:/workspace/triton_demo nvcr.io/nvidia/deepstream-l4t:5.0.1-20.09-samples
 ```
 
 Inside the Docker container, run:
